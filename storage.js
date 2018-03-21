@@ -27,7 +27,8 @@ let storage = fileName => {
 
     return arr
       .then(a => a.concat([obj]))
-      .then(a => save(a));
+      .then(a => save(a))
+      .then(() => Promise.resolve(obj));
   }
 
   let remove = (id) => {
