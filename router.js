@@ -4,14 +4,15 @@ const phoneBook = require('./storage').phoneBook;
 const router = () => {
 
   const routes = [
-    {method: 'GET', url: /^\/contacts\/?$/, handle: phoneBook.get},
-    {method: 'POST', url: /^\/contacts\/?$/, handle: phoneBook.add},
-    {method: 'DELETE', url: /^\/contacts\/?$/, handle: phoneBook.remove}
+    {method: 'GET', pattern: /^\/contacts\/?$/, handle: phoneBook.get},
+    {method: 'GET', pattern: /^\/contacts\/([0-9]+)\/?$/, handle: phoneBook.get},
+    {method: 'POST', pattern: /^\/contacts\/?$/, handle: phoneBook.add},
+    {method: 'DELETE', pattern: /^\/contacts\/?$/, handle: phoneBook.remove}
   ];
 
   let lookupRoute = req => {
-    return routes.find(({ method, url }) => {
-      return req.method === method && url.test(req.url)
+    return routes.find(({ method, pattern }) => {
+      return req.method === method && pattern.test(req.url)
     });
   };
 
@@ -20,9 +21,11 @@ const router = () => {
 
     if (!route) {
       return Promise.resolve('Could not find anything');
-    } else {
-      return route.handle(data);
     }
+    
+    let pattern = route.pattern;
+    let tokens = pattern.exec(req.url);
+    return route.handle(data, tokens);
   }
 
   return {
