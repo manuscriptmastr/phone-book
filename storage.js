@@ -7,18 +7,18 @@ let storage = fileName => {
 
   let generateId = () => Math.floor(Math.random() * 100**10);
 
+  let save = (arr) => {
+    let contents = JSON.stringify(arr);
+
+    return writeFile(fileName, contents);
+  }
+
   let get = () => {
     let contents = readFile(fileName);
 
     return contents
       .then(data => JSON.parse(data))
       .catch(err => Promise.resolve([]));
-  }
-
-  let save = (arr) => {
-    let contents = JSON.stringify(arr);
-
-    return writeFile(fileName, contents);
   }
 
   let add = obj => {
@@ -36,7 +36,8 @@ let storage = fileName => {
 
     return arr
       .then(a => a.filter(obj => obj.id !== id))
-      .then(a => save(a));
+      .then(a => save(a))
+      .then(() => Promise.resolve(id));
   }
 
   return {
