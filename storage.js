@@ -13,12 +13,13 @@ let storage = fileName => {
     return writeFile(fileName, contents);
   }
 
-  let get = () => {
+  let get = (id) => {
     let contents = readFile(fileName);
 
     return contents
       .then(data => JSON.parse(data))
-      .catch(err => Promise.resolve([]));
+      .catch(err => Promise.resolve([]))
+      .then(data => id ? data.find(d => d.id === id) : data);
   }
 
   let add = obj => {
@@ -34,10 +35,12 @@ let storage = fileName => {
   let remove = (id) => {
     let arr = get();
 
+    arr.then(a => a.filter(obj => obj.id !== id))
+      .then(a => save(a));
+
     return arr
-      .then(a => a.filter(obj => obj.id !== id))
-      .then(a => save(a))
-      .then(() => Promise.resolve(id));
+      .then(a => a.find(obj => obj.id === id))
+      .catch(() => Promise.resolve('No entry found'));
   }
 
   return {

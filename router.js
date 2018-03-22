@@ -1,38 +1,40 @@
+const fs = require('fs');
+const promisify = require('util').promisify;
+const readFile = promisify(fs.readFile);
 const url = require('url');
+const path = require('path');
 const phoneBook = require('./storage').phoneBook;
 
-const router = () => {
+const routes = [
+  {method: 'GET', pattern: /^\/contacts\/?([0-9]+)?\/?$/, handle: (data, tokens) => phoneBook.get(parseInt(tokens[1]))},
+  {method: 'POST', pattern: /^\/contacts\/?$/, handle: phoneBook.add},
+  {method: 'DELETE', pattern: /^\/contacts\/?([0-9]+)?\/?$/, handle: (data, tokens) => phoneBook.remove(parseInt(tokens[1]))}
+];
 
-  const routes = [
-    {method: 'GET', pattern: /^\/contacts\/?$/, handle: phoneBook.get},
-    {method: 'GET', pattern: /^\/contacts\/([0-9]+)\/?$/, handle: phoneBook.get},
-    {method: 'POST', pattern: /^\/contacts\/?$/, handle: phoneBook.add},
-    {method: 'DELETE', pattern: /^\/contacts\/?$/, handle: phoneBook.remove}
-  ];
+let lookupRoute = req => {
+  return routes.find(({ method, pattern }) => {
+    return req.method === method && pattern.test(req.url)
+  });
+};
 
-  let lookupRoute = req => {
-    return routes.find(({ method, pattern }) => {
-      return req.method === method && pattern.test(req.url)
-    });
-  };
-
-  let handleRequest = (req, data) => {
-    let route = lookupRoute(req);
-
-    if (!route) {
-      return Promise.resolve('Could not find anything');
-    }
-    
-    let pattern = route.pattern;
-    let tokens = pattern.exec(req.url);
-    return route.handle(data, tokens);
+let handleRoute = (req, data) => {
+  let route = lookupRoute(req);
+  if (!route) {
+    return Promise.resolve('Could not find anything');
   }
 
-  return {
-    handleRequest
-  }
+  let pattern = route.pattern;
+  let tokens = pattern.exec(req.url);
+
+  return route.handle(data, tokens);
 }
 
-let Router = router();
+let handleRequest = (req, data) => {
+  let contents = readFile(req.url.slice(1), 'utf-8');
 
-module.exports = Router;
+  return contents.catch(() => handleRoute(req, data));
+}
+
+module.exports = {
+  handleRequest
+};
