@@ -16,10 +16,17 @@ let storage = fileName => {
   let get = (id) => {
     let contents = readFile(fileName);
 
-    return contents
+    let data = contents
       .then(data => JSON.parse(data))
-      .catch(err => Promise.resolve([]))
-      .then(data => id ? data.find(d => d.id === id) : data);
+      .catch(err => Promise.resolve([]));
+
+    if (id) {
+      data = data
+        .then(a => a.find(d => d.id === id))
+        .catch(() => Promse.resolve('No entry found'));
+    }
+
+    return data;
   }
 
   let add = obj => {
@@ -43,10 +50,29 @@ let storage = fileName => {
       .catch(() => Promise.resolve('No entry found'));
   }
 
+  let update = (obj, id) => {
+    let arr = get();
+    let newObj = arr
+      .then(a => {
+        var foundObj = a.find(o => o.id === id);
+        
+        if (!foundObj) {
+          return Promise.resolve('No entry found');
+        }
+
+        Object.assign(foundObj, obj);
+
+        return save(a).then(() => foundObj);
+      });
+
+    return newObj;
+  }
+
   return {
     get,
     add,
-    remove
+    remove,
+    update
   }
 
 }
