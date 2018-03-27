@@ -1,2 +1,2 @@
-# phone-book
+# phonebook
 Another Node.js phonebook.
