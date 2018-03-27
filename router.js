@@ -6,9 +6,10 @@ const path = require('path');
 const phoneBook = require('./storage').phoneBook;
 
 const routes = [
+  {method: 'GET', pattern: /^\/contacts\/?$/, handle: phoneBook.getAll},
   {method: 'GET', pattern: /^\/contacts\/?([0-9]+)?\/?$/, handle: (data, tokens) => phoneBook.get(parseInt(tokens[1]))},
   {method: 'POST', pattern: /^\/contacts\/?$/, handle: phoneBook.add},
-  {method: 'PUT', pattern: /^\/contacts\/([0-9]+)\/?$/, handle: (data, tokens) => phoneBook.update(data, parseInt(tokens[1]))},
+  // {method: 'PUT', pattern: /^\/contacts\/([0-9]+)\/?$/, handle: (data, tokens) => phoneBook.update(data, parseInt(tokens[1]))},
   {method: 'DELETE', pattern: /^\/contacts\/?([0-9]+)?\/?$/, handle: (data, tokens) => phoneBook.remove(parseInt(tokens[1]))}
 ];
 

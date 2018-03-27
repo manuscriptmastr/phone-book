@@ -1,83 +1,46 @@
-const fs = require('fs');
-const promisify = require('util').promisify;
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
+const pg = require('pg-promise')();
 
-let storage = fileName => {
-
-  let generateId = () => Math.floor(Math.random() * 100**10);
-
-  let save = (arr) => {
-    let contents = JSON.stringify(arr);
-
-    return writeFile(fileName, contents);
-  }
+let storage = dbName => {
+  let db = pg(`postgres://joshuamartin@localhost:5432/${dbName}`);
 
   let get = (id) => {
-    let contents = readFile(fileName);
-
-    let data = contents
-      .then(data => JSON.parse(data))
-      .catch(err => Promise.resolve([]));
-
-    if (id) {
-      data = data
-        .then(a => a.find(d => d.id === id))
-        .catch(() => Promse.resolve('No entry found'));
-    }
-
+    let data = db.query(`SELECT * FROM contact WHERE id = '${id}'`);
     return data;
   }
 
-  let add = obj => {
-    obj.id = generateId();
-    let arr = get();
+  let getAll = () => {
+    let data = db.query('SELECT * FROM contact');
+    return data;
+  }
 
-    return arr
-      .then(a => a.concat([obj]))
-      .then(a => save(a))
-      .then(() => Promise.resolve(obj));
+  let add = ({first_name, last_name, phone}) => {
+    let data = db.query(
+      `
+        INSERT INTO contact
+          (first_name, last_name, phone)
+        VALUES
+          ('${first_name}', '${last_name}', '${phone}') 
+        RETURNING *
+      `
+    );
+    return data;
   }
 
   let remove = (id) => {
-    let arr = get();
-
-    arr.then(a => a.filter(obj => obj.id !== id))
-      .then(a => save(a));
-
-    return arr
-      .then(a => a.find(obj => obj.id === id))
-      .catch(() => Promise.resolve('No entry found'));
-  }
-
-  let update = (obj, id) => {
-    let arr = get();
-    let newObj = arr
-      .then(a => {
-        var foundObj = a.find(o => o.id === id);
-        
-        if (!foundObj) {
-          return Promise.resolve('No entry found');
-        }
-
-        Object.assign(foundObj, obj);
-
-        return save(a).then(() => foundObj);
-      });
-
-    return newObj;
+    let data = db.query(`DELETE FROM contact WHERE id = '${id}' RETURNING *`);
+    return data;
   }
 
   return {
     get,
+    getAll,
     add,
-    remove,
-    update
+    remove
   }
 
 }
 
-let phoneBook = storage('phonebook.json');
+let phoneBook = storage('phonebook');
 
 module.exports = {
   phoneBook

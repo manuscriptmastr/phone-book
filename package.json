@@ -1,0 +1,23 @@
+{
+  "name": "phone-book",
+  "version": "1.0.0",
+  "description": "Another Node.js phonebook.",
+  "main": "router.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manuscriptmastr/phone-book.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/manuscriptmastr/phone-book/issues"
+  },
+  "homepage": "https://github.com/manuscriptmastr/phone-book#readme",
+  "dependencies": {
+    "pg-promise": "^8.2.2"
+  }
+}
